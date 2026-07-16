@@ -13,7 +13,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SaveCircle",
+  title: {
+    default: "SaveCircle",
+    template: "%s | SaveCircle",
+  },
   description:
     "A transparent group savings and rotating contribution management platform.",
 };
