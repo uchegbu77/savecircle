@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum CircleRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum CircleStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum ContributionFrequency {
+  WEEKLY
+  MONTHLY
+}
+
+enum MembershipStatus {
+  INVITED
+  ACTIVE
+  LEFT
+  REMOVED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  firstName String
+  lastName  String
+  email     String   @unique
+  password  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ownedCircles      SavingsCircle[] @relation("CircleOwner")
+  circleMemberships CircleMember[]
+}
+
+model SavingsCircle {
+  id                 String                @id @default(cuid())
+  name               String
+  description        String?
+  contributionAmount Decimal               @db.Decimal(10, 2)
+  frequency          ContributionFrequency
+  startDate          DateTime
+  status             CircleStatus          @default(DRAFT)
+  inviteCode         String                @unique
+  ownerId            String
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+
+  owner   User           @relation("CircleOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members CircleMember[]
+
+  @@index([ownerId])
+}
+
+model CircleMember {
+  id              String           @id @default(cuid())
+  userId          String
+  savingsCircleId String
+  role            CircleRole       @default(MEMBER)
+  status          MembershipStatus @default(ACTIVE)
+  joinedAt        DateTime         @default(now())
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  savingsCircle SavingsCircle @relation(fields: [savingsCircleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, savingsCircleId])
+  @@index([savingsCircleId])
+}
