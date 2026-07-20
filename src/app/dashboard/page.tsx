@@ -1,3 +1,8 @@
+import { redirect } from "next/navigation";
+import { auth } from "../../auth";
+import LogoutButton from "../../components/logout-button";
+
+
 import Link from "next/link";
 
 const summaryCards = [
@@ -41,7 +46,23 @@ const activities = [
   },
 ];
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const session = await auth();
+
+  if (!session?.user) {
+    redirect("/login");
+  }
+
+  const userName =
+  session.user.name ?? "SaveCircle member";
+
+const initials = userName
+  .split(" ")
+  .map((name) => name.charAt(0))
+  .join("")
+  .slice(0, 2)
+  .toUpperCase();
+
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="border-b border-slate-200 bg-white">
@@ -55,11 +76,11 @@ export default function DashboardPage() {
 
           <div className="flex items-center gap-4">
             <span className="hidden text-sm text-slate-600 sm:inline">
-              Welcome, Obiora
+              Welcome, {userName}
             </span>
 
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 font-bold text-emerald-700">
-              OU
+              {initials}
             </div>
           </div>
         </div>
@@ -76,7 +97,7 @@ export default function DashboardPage() {
             <DashboardLink href="/dashboard" label="Contributions" />
             <DashboardLink href="/dashboard" label="Payouts" />
             <DashboardLink href="/dashboard" label="Notifications" />
-            <DashboardLink href="/" label="Log out" />
+            <LogoutButton />
           </nav>
         </aside>
 

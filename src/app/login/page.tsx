@@ -1,8 +1,25 @@
+import { redirect } from "next/navigation";
+
+import { auth } from "../../auth";
+
 import Link from "next/link";
+import LoginForm from "../../components/login-form";
 import SiteFooter from "../../components/site-footer";
 import SiteHeader from "../../components/site-header";
 
-export default function LoginPage() {
+type LoginPageProps = {
+  searchParams: Promise<{
+    registered?: string;
+  }>;
+};
+
+export default async function LoginPage({searchParams,}: LoginPageProps) {
+  const params = await searchParams;
+  const session = await auth();
+
+if (session?.user) {
+  redirect("/dashboard");
+}
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
       <SiteHeader />
@@ -19,61 +36,14 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form className="mt-8 space-y-5">
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-semibold text-slate-700"
-              >
-                Email address
-              </label>
-
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                placeholder="you@example.com"
-                className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
-              />
+          {params.registered === "true" && (
+            <div className="mt-6 rounded-lg bg-emerald-50 p-4 text-sm text-emerald-700">
+              Your account was created successfully.
+              You can now log in.
             </div>
+          )}
 
-            <div>
-              <div className="flex items-center justify-between">
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-semibold text-slate-700"
-                >
-                  Password
-                </label>
-
-                <Link
-                  href="/"
-                  className="text-sm font-medium text-emerald-600 hover:text-emerald-700"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                placeholder="Enter your password"
-                className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="w-full rounded-lg bg-emerald-600 px-5 py-3 font-semibold text-white transition hover:bg-emerald-700"
-            >
-              Log in
-            </button>
-          </form>
+          <LoginForm />
 
           <p className="mt-6 text-center text-sm text-slate-600">
             Do not have an account?{" "}
