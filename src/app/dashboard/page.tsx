@@ -93,7 +93,7 @@ const initials = userName
             className="flex gap-2 overflow-x-auto md:flex-col"
           >
             <DashboardLink href="/dashboard" label="Overview" active />
-            <DashboardLink href="/dashboard" label="My circles" />
+            <DashboardLink href="/circles" label="My circles" />
             <DashboardLink href="/dashboard" label="Contributions" />
             <DashboardLink href="/dashboard" label="Payouts" />
             <DashboardLink href="/dashboard" label="Notifications" />
@@ -115,12 +115,12 @@ const initials = userName
               </p>
             </div>
 
-            <button
-              type="button"
-              className="rounded-lg bg-emerald-600 px-5 py-3 font-semibold text-white transition hover:bg-emerald-700"
-            >
-              Create new circle
-            </button>
+           <Link
+              href="/circles/create"
+              className="rounded-lg bg-emerald-600 px-5 py-3 text-center font-semibold text-white transition hover:bg-emerald-700"
+              >
+               Create new circle
+            </Link>
           </div>
 
           <section

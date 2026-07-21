@@ -40,3 +40,48 @@ export function validateRegistration(
 
   return errors;
 }
+
+export type CreateCircleData = {
+  name: string;
+  description: string;
+  contributionAmount: string;
+  frequency: string;
+  startDate: string;
+};
+
+export function validateCreateCircle(
+  data: CreateCircleData,
+) {
+  const errors: Record<string, string> = {};
+
+  if (data.name.trim().length < 3) {
+    errors.name =
+      "Circle name must contain at least 3 characters.";
+  }
+
+  const amount =
+    Number(data.contributionAmount);
+
+  if (
+    !Number.isFinite(amount) ||
+    amount <= 0
+  ) {
+    errors.contributionAmount =
+      "Enter a valid contribution amount.";
+  }
+
+  if (
+    data.frequency !== "WEEKLY" &&
+    data.frequency !== "MONTHLY"
+  ) {
+    errors.frequency =
+      "Select a valid contribution frequency.";
+  }
+
+  if (!data.startDate) {
+    errors.startDate =
+      "Select a start date.";
+  }
+
+  return errors;
+}
