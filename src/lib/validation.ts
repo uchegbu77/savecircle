@@ -85,3 +85,21 @@ export function validateCreateCircle(
 
   return errors;
 }
+
+export function validateInviteCode(
+  inviteCode: string,
+) {
+  const code = inviteCode
+    .trim()
+    .toUpperCase();
+
+  if (!code) {
+    return "Enter an invite code.";
+  }
+
+  if (code.length !== 8) {
+    return "Invite codes must contain 8 characters.";
+  }
+
+  return null;
+}

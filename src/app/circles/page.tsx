@@ -88,12 +88,21 @@ export default async function CirclesPage() {
               Create your first savings circle and invite trusted members to join.
             </p>
 
-            <Link
-              href="/circles/create"
-              className="mt-7 inline-block rounded-lg bg-emerald-600 px-5 py-3 font-semibold text-white transition hover:bg-emerald-700"
-            >
-              Create your first circle
-            </Link>
+            <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
+              <Link
+                href="/circles/join"
+                className="rounded-lg border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-700 transition hover:bg-slate-100"
+              >
+                Join an existing circle
+              </Link>
+
+              <Link
+                href="/circles/create"
+                className="rounded-lg bg-emerald-600 px-5 py-3 font-semibold text-white transition hover:bg-emerald-700"
+              >
+                Create your first circle
+              </Link>
+            </div>
           </section>
         ) : (
           <section className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">

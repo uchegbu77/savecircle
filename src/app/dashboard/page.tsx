@@ -115,12 +115,21 @@ const initials = userName
               </p>
             </div>
 
-           <Link
+           <div className="flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/circles/join"
+              className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-center font-semibold text-slate-700 transition hover:bg-slate-100"
+            >
+              Join a circle
+            </Link>
+
+            <Link
               href="/circles/create"
               className="rounded-lg bg-emerald-600 px-5 py-3 text-center font-semibold text-white transition hover:bg-emerald-700"
-              >
-               Create new circle
+            >
+              Create new circle
             </Link>
+          </div>
           </div>
 
           <section
