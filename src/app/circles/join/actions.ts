@@ -105,6 +105,23 @@ export async function joinCircle(
     );
   }
 
+  const activeMemberCount =
+  await prisma.circleMember.count({
+    where: {
+      savingsCircleId: circle.id,
+      status: "ACTIVE",
+    },
+  });
+  if (
+  activeMemberCount >=
+  circle.maxMembers
+) {
+  return {
+    error:
+      "This savings circle has reached its maximum number of members.",
+  };
+}
+
   await prisma.circleMember.create({
     data: {
       userId: user.id,

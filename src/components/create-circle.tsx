@@ -133,6 +133,35 @@ export default function CreateCircleForm() {
       </div>
 
       <div>
+      <div>
+          <label
+            htmlFor="maxMembers"
+            className="block text-sm font-semibold text-slate-700"
+          >
+            Maximum number of members
+          </label>
+
+          <input
+            id="maxMembers"
+            name="maxMembers"
+            type="number"
+            min="2"
+            max="50"
+            required
+            placeholder="10"
+            className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+          />
+
+          <p className="mt-2 text-sm text-slate-500">
+            Each member will normally receive one payout during the savings cycle.
+          </p>
+
+          {state.errors?.maxMembers && (
+            <p className="mt-2 text-sm text-red-600">
+              {state.errors.maxMembers}
+            </p>
+          )}
+      </div>
         <label
           htmlFor="startDate"
           className="block text-sm font-semibold text-slate-700"

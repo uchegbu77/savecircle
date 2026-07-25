@@ -48,12 +48,19 @@ export async function createCircle(
       .get("startDate")
       ?.toString() ?? "";
 
+  const maxMembers =
+    formData
+      .get("maxMembers")
+      ?.toString() ?? "";
+
   const errors = validateCreateCircle({
+
     name,
     description,
     contributionAmount,
     frequency,
     startDate,
+    maxMembers,
   });
 
   if (Object.keys(errors).length > 0) {
@@ -95,6 +102,8 @@ export async function createCircle(
             : "MONTHLY",
 
         startDate: new Date(startDate),
+
+        maxMembers: Number(maxMembers),
 
         inviteCode,
 

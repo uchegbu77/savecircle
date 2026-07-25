@@ -57,6 +57,7 @@ model SavingsCircle {
   contributionAmount Decimal               @db.Decimal(10, 2)
   frequency          ContributionFrequency
   startDate          DateTime
+  maxMembers         Int                   @default(10)
   status             CircleStatus          @default(DRAFT)
   inviteCode         String                @unique
   ownerId            String
@@ -75,6 +76,7 @@ model CircleMember {
   savingsCircleId String
   role            CircleRole       @default(MEMBER)
   status          MembershipStatus @default(ACTIVE)
+  payoutPosition  Int?
   joinedAt        DateTime         @default(now())
 
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)

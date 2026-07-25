@@ -60,6 +60,11 @@ export default async function CirclePage({
   if (!circle) {
     notFound();
   }
+  const expectedPayout =
+  Number(
+    circle.contributionAmount,
+  ) * circle.members.length;
+
 
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-12">
@@ -138,8 +143,29 @@ export default async function CirclePage({
               label="Members"
               value={circle.members.length.toString()}
             />
+
+            <CircleStat
+              label="Circle capacity"
+              value={`${circle.members.length} / ${circle.maxMembers}`}
+            />
+
+            <CircleStat
+                label="Expected payout"
+                value={`£${expectedPayout.toFixed(
+                  2,
+                )}`}
+            />
           </dl>
         </section>
+
+        <div className = "mt-6">
+              <Link
+                href={`/circles/${circle.id}/payout-order`}
+                className="inline-block rounded-lg border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-700 transition hover:bg-slate-50"
+              >
+                View payout order
+              </Link>
+        </div>
 
         <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
           <div>

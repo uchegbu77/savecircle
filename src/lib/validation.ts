@@ -47,6 +47,7 @@ export type CreateCircleData = {
   contributionAmount: string;
   frequency: string;
   startDate: string;
+  maxMembers: string;
 };
 
 export function validateCreateCircle(
@@ -82,6 +83,18 @@ export function validateCreateCircle(
     errors.startDate =
       "Select a start date.";
   }
+
+  const maxMembers =
+  Number(data.maxMembers);
+
+if (
+  !Number.isInteger(maxMembers) ||
+  maxMembers < 2 ||
+  maxMembers > 50
+) {
+  errors.maxMembers =
+    "A savings circle must have between 2 and 50 members.";
+}
 
   return errors;
 }
