@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import StartCircleForm from "../../../components/start-circle-form";
 
 import { auth } from "../../../auth";
 import { prisma } from "../../../lib/prisma";
@@ -65,7 +66,16 @@ export default async function CirclePage({
     circle.contributionAmount,
   ) * circle.members.length;
 
-
+const allPositionsAssigned =
+  circle.members.length > 0 &&
+  circle.members.every(
+    (member) =>
+      member.payoutPosition !==
+      null,
+  );
+  const isOwner =
+  circle.owner.email ===
+  session.user.email;
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-12">
       <div className="mx-auto max-w-7xl">
@@ -158,12 +168,35 @@ export default async function CirclePage({
           </dl>
         </section>
 
-        <div className = "mt-6">
+       {isOwner &&
+  circle.status === "DRAFT" && (
+    <StartCircleForm
+      circleId={circle.id}
+      activeMemberCount={
+        circle.members.length
+      }
+      maximumMemberCount={
+        circle.maxMembers
+      }
+      allPositionsAssigned={
+        allPositionsAssigned
+      }
+    />
+  )}
+
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 href={`/circles/${circle.id}/payout-order`}
                 className="inline-block rounded-lg border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-700 transition hover:bg-slate-50"
               >
                 View payout order
+              </Link>
+
+              <Link
+                href={`/circles/${circle.id}/cycles`}
+                className="inline-block rounded-lg border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-700 transition hover:bg-slate-50"
+              >
+                View contribution schedule
               </Link>
         </div>
 

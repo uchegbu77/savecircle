@@ -37,6 +37,28 @@ enum MembershipStatus {
   REMOVED
 }
 
+enum ContributionCycleStatus {
+  UPCOMING
+  OPEN
+  COMPLETED
+  CANCELLED
+}
+
+enum ContributionStatus {
+  PENDING
+  PAID
+  LATE
+  MISSED
+  WAIVED
+}
+
+enum PayoutStatus {
+  PENDING
+  READY
+  COMPLETED
+  FAILED
+}
+
 model User {
   id        String   @id @default(cuid())
   firstName String
@@ -64,8 +86,9 @@ model SavingsCircle {
   createdAt          DateTime              @default(now())
   updatedAt          DateTime              @updatedAt
 
-  owner   User           @relation("CircleOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  owner   User                @relation("CircleOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   members CircleMember[]
+  cycles  ContributionCycle[]
 
   @@index([ownerId])
 }
@@ -79,9 +102,56 @@ model CircleMember {
   payoutPosition  Int?
   joinedAt        DateTime         @default(now())
 
-  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  savingsCircle SavingsCircle @relation(fields: [savingsCircleId], references: [id], onDelete: Cascade)
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  savingsCircle SavingsCircle       @relation(fields: [savingsCircleId], references: [id], onDelete: Cascade)
+  payoutCycles  ContributionCycle[] @relation("CyclePayoutRecipient")
+  contributions Contribution[]
 
   @@unique([userId, savingsCircleId])
   @@index([savingsCircleId])
+}
+
+model ContributionCycle {
+  id                String                  @id @default(cuid())
+  savingsCircleId   String
+  cycleNumber       Int
+  scheduledDate     DateTime
+  expectedAmount    Decimal                 @db.Decimal(10, 2)
+  payoutRecipientId String
+  status            ContributionCycleStatus @default(UPCOMING)
+  payoutStatus      PayoutStatus            @default(PENDING)
+  payoutCompletedAt DateTime?
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+
+  savingsCircle   SavingsCircle  @relation(fields: [savingsCircleId], references: [id], onDelete: Cascade)
+  payoutRecipient CircleMember   @relation("CyclePayoutRecipient", fields: [payoutRecipientId], references: [id], onDelete: Restrict)
+  contributions   Contribution[]
+
+  @@unique([savingsCircleId, cycleNumber])
+  @@unique([savingsCircleId, payoutRecipientId])
+  @@index([savingsCircleId])
+  @@index([payoutRecipientId])
+  @@index([scheduledDate])
+}
+
+model Contribution {
+  id         String             @id @default(cuid())
+  cycleId    String
+  memberId   String
+  amountDue  Decimal            @db.Decimal(10, 2)
+  amountPaid Decimal            @default(0) @db.Decimal(10, 2)
+  status     ContributionStatus @default(PENDING)
+  paidAt     DateTime?
+  reference  String?
+  notes      String?
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  cycle  ContributionCycle @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  member CircleMember      @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([cycleId, memberId])
+  @@index([memberId])
+  @@index([status])
 }
