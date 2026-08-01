@@ -257,6 +257,12 @@ export default async function CyclesPage({
                         />
                       </div>
                     </div>
+                    <Link
+                      href={`/circles/${circle.id}/cycles/${cycle.id}`}
+                      className="mt-6 inline-block rounded-lg border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-700 transition hover:bg-slate-50"
+                      >
+                      View contributions
+                    </Link>
                   </article>
                 );
               },

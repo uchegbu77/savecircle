@@ -184,21 +184,30 @@ const allPositionsAssigned =
     />
   )}
 
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link
-                href={`/circles/${circle.id}/payout-order`}
-                className="inline-block rounded-lg border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-700 transition hover:bg-slate-50"
-              >
-                View payout order
-              </Link>
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <Link
+              href={`/circles/${circle.id}/payout-order`}
+              className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-center font-semibold text-slate-700 transition hover:bg-slate-50"
+            >
+              View payout order
+            </Link>
 
+            {circle.status === "ACTIVE" ? (
               <Link
                 href={`/circles/${circle.id}/cycles`}
-                className="inline-block rounded-lg border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-700 transition hover:bg-slate-50"
+                className="rounded-lg bg-emerald-600 px-5 py-3 text-center font-semibold text-white transition hover:bg-emerald-700"
+              >
+                Manage contributions
+              </Link>
+            ) : (
+              <Link
+                href={`/circles/${circle.id}/cycles`}
+                className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-center font-semibold text-slate-700 transition hover:bg-slate-50"
               >
                 View contribution schedule
               </Link>
-        </div>
+            )}
+          </div>
 
         <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
           <div>

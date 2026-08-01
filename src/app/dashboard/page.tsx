@@ -94,7 +94,7 @@ const initials = userName
           >
             <DashboardLink href="/dashboard" label="Overview" active />
             <DashboardLink href="/circles" label="My circles" />
-            <DashboardLink href="/dashboard" label="Contributions" />
+            <DashboardLink href="/contributions" label="Contributions" />
             <DashboardLink href="/dashboard" label="Payouts" />
             <DashboardLink href="/dashboard" label="Notifications" />
             <LogoutButton />
