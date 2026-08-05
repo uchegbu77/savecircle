@@ -120,6 +120,9 @@ model ContributionCycle {
   payoutRecipientId String
   status            ContributionCycleStatus @default(UPCOMING)
   payoutStatus      PayoutStatus            @default(PENDING)
+  payoutReference   String?
+  payoutNotes       String?
+  payoutCompletedBy String?
   payoutCompletedAt DateTime?
   createdAt         DateTime                @default(now())
   updatedAt         DateTime                @updatedAt

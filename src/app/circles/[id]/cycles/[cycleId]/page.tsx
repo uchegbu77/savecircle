@@ -11,6 +11,7 @@ import { prisma } from "../../../../../lib/prisma";
 import {
   resetContributionPayment,
 } from "./actions";
+import CompletePayoutForm from "@/src/components/complete-payout-form";
 
 type CycleDetailsPageProps = {
   params: Promise<{
@@ -90,6 +91,13 @@ export default async function CycleDetailsPage({
     cycle.savingsCircle.owner
       .email ===
     session.user.email;
+
+    const canCompletePayout = isOwner &&
+  cycle.status === "COMPLETED" &&
+  cycle.payoutStatus === "READY";
+
+  const payoutRecipientName =
+  `${cycle.payoutRecipient.user.firstName} ${cycle.payoutRecipient.user.lastName}`;
 
   const totalPaid =
     cycle.contributions.reduce(
@@ -380,6 +388,69 @@ export default async function CycleDetailsPage({
           </div>
         </section>
       </div>
+
+      {canCompletePayout && (
+        <CompletePayoutForm
+          circleId={cycle.savingsCircleId}
+          cycleId={cycle.id}
+          recipientName={payoutRecipientName}
+          payoutAmount={Number(cycle.expectedAmount).toFixed(2)}
+        />
+      )}
+
+      {cycle.payoutStatus === "COMPLETED" && (
+  <section className="mt-8 rounded-2xl border border-blue-200 bg-blue-50 p-6">
+    <p className="font-semibold text-blue-700">
+      Payout completed
+    </p>
+
+    <h2 className="mt-2 text-2xl font-bold text-slate-900">
+      Funds paid to {payoutRecipientName}
+    </h2>
+
+    <p className="mt-3 text-slate-700">
+      £{Number(cycle.expectedAmount).toFixed(2)} was confirmed as paid.
+    </p>
+
+    <dl className="mt-6 grid gap-5 border-t border-blue-200 pt-6 sm:grid-cols-3">
+      <PayoutDetail
+        label="Recipient"
+        value={payoutRecipientName}
+      />
+
+      <PayoutDetail
+        label="Completion date"
+        value={
+          cycle.payoutCompletedAt
+            ? cycle.payoutCompletedAt.toLocaleDateString(
+                "en-GB",
+              )
+            : "Not recorded"
+        }
+      />
+
+      <PayoutDetail
+        label="Reference"
+        value={
+          cycle.payoutReference ||
+          "No reference provided"
+        }
+      />
+    </dl>
+
+    {cycle.payoutNotes && (
+      <div className="mt-5 rounded-xl bg-white p-4">
+        <p className="text-sm font-semibold text-slate-700">
+          Notes
+        </p>
+
+        <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600">
+          {cycle.payoutNotes}
+        </p>
+      </div>
+    )}
+  </section>
+)}
     </main>
   );
 }
@@ -402,6 +473,28 @@ function SummaryCard({
       <p className="mt-2 text-2xl font-bold text-slate-900">
         {value}
       </p>
+    </div>
+  );
+}
+
+type PayoutDetailProps = {
+  label: string;
+  value: string;
+};
+
+function PayoutDetail({
+  label,
+  value,
+}: PayoutDetailProps) {
+  return (
+    <div>
+      <dt className="text-sm font-medium text-slate-500">
+        {label}
+      </dt>
+
+      <dd className="mt-1 font-semibold text-slate-900">
+        {value}
+      </dd>
     </div>
   );
 }
