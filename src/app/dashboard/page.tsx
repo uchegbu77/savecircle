@@ -1,67 +1,251 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
+
 import { auth } from "../../auth";
 import LogoutButton from "../../components/logout-button";
-
-
-import Link from "next/link";
-
-const summaryCards = [
-  {
-    label: "Active circles",
-    value: "2",
-    description: "Savings groups you belong to",
-  },
-  {
-    label: "Contribution due",
-    value: "£100",
-    description: "Due on 31 July 2026",
-  },
-  {
-    label: "Total contributed",
-    value: "£1,200",
-    description: "Across all active circles",
-  },
-  {
-    label: "Next payout",
-    value: "£1,000",
-    description: "Scheduled for October 2026",
-  },
-];
-
-const activities = [
-  {
-    title: "Contribution recorded",
-    details: "£100 recorded for Family Growth Circle",
-    date: "12 July 2026",
-  },
-  {
-    title: "New member joined",
-    details: "Chinedu joined Family Growth Circle",
-    date: "10 July 2026",
-  },
-  {
-    title: "Payout completed",
-    details: "June payout marked as completed",
-    date: "30 June 2026",
-  },
-];
+import { prisma } from "../../lib/prisma";
 
 export default async function DashboardPage() {
   const session = await auth();
 
-  if (!session?.user) {
+  if (!session?.user?.email) {
     redirect("/login");
   }
 
-  const userName =
-  session.user.name ?? "SaveCircle member";
+  const user = await prisma.user.findUnique({
+    where: {
+      email: session.user.email,
+    },
 
-const initials = userName
-  .split(" ")
-  .map((name) => name.charAt(0))
-  .join("")
-  .slice(0, 2)
-  .toUpperCase();
+    include: {
+      circleMemberships: {
+        where: {
+          status: "ACTIVE",
+        },
+
+        include: {
+          savingsCircle: {
+            include: {
+              _count: {
+                select: {
+                  members: {
+                    where: {
+                      status: "ACTIVE",
+                    },
+                  },
+                },
+              },
+
+              cycles: {
+                where: {
+                  status: "OPEN",
+                },
+
+                include: {
+                  payoutRecipient: {
+                    include: {
+                      user: true,
+                    },
+                  },
+
+                  contributions: {
+                    select: {
+                      amountPaid: true,
+                      status: true,
+                    },
+                  },
+                },
+
+                orderBy: {
+                  cycleNumber: "asc",
+                },
+
+                take: 1,
+              },
+            },
+          },
+        },
+
+        orderBy: {
+          joinedAt: "desc",
+        },
+      },
+    },
+  });
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const activeMemberships =
+    user.circleMemberships.filter(
+      (membership) =>
+        membership.savingsCircle.status === "ACTIVE",
+    );
+
+  const userContributions =
+    await prisma.contribution.findMany({
+      where: {
+        member: {
+          userId: user.id,
+        },
+
+        cycle: {
+          savingsCircle: {
+            status: {
+              in: ["ACTIVE", "COMPLETED"],
+            },
+          },
+        },
+      },
+
+      include: {
+        cycle: {
+          include: {
+            savingsCircle: true,
+
+            payoutRecipient: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        },
+      },
+
+      orderBy: {
+        cycle: {
+          scheduledDate: "asc",
+        },
+      },
+    });
+
+  const openContributions =
+    userContributions.filter(
+      (contribution) =>
+        contribution.cycle.status === "OPEN" &&
+        contribution.status !== "PAID",
+    );
+
+  const contributionDue =
+    openContributions.reduce(
+      (total, contribution) =>
+        total +
+        Math.max(
+          0,
+          Number(contribution.amountDue) -
+            Number(contribution.amountPaid),
+        ),
+      0,
+    );
+
+  const totalContributed =
+    userContributions.reduce(
+      (total, contribution) =>
+        total +
+        Number(contribution.amountPaid),
+      0,
+    );
+
+  const nextPayout =
+    await prisma.contributionCycle.findFirst({
+      where: {
+        payoutRecipient: {
+          userId: user.id,
+          status: "ACTIVE",
+        },
+
+        savingsCircle: {
+          status: "ACTIVE",
+        },
+
+        payoutStatus: {
+          not: "COMPLETED",
+        },
+      },
+
+      include: {
+        savingsCircle: true,
+      },
+
+      orderBy: {
+        scheduledDate: "asc",
+      },
+    });
+
+  const recentPayments =
+    await prisma.contribution.findMany({
+      where: {
+        member: {
+          userId: user.id,
+        },
+
+        status: "PAID",
+      },
+
+      include: {
+        cycle: {
+          include: {
+            savingsCircle: true,
+          },
+        },
+      },
+
+      orderBy: {
+        paidAt: "desc",
+      },
+
+      take: 5,
+    });
+
+  const userName =
+    `${user.firstName} ${user.lastName}`;
+
+  const initials =
+    `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`
+      .toUpperCase();
+
+  const summaryCards = [
+    {
+      label: "Active circles",
+      value: activeMemberships.length.toString(),
+      description:
+        activeMemberships.length === 1
+          ? "Savings circle currently active"
+          : "Savings circles currently active",
+    },
+    {
+      label: "Contribution due",
+      value: formatCurrency(contributionDue),
+      description:
+        openContributions.length === 0
+          ? "No open contributions due"
+          : `${openContributions.length} open contribution ${
+              openContributions.length === 1
+                ? "payment"
+                : "payments"
+            }`,
+    },
+    {
+      label: "Total contributed",
+      value: formatCurrency(totalContributed),
+      description:
+        "Total payments recorded across your circles",
+    },
+    {
+      label: "Next payout",
+      value: nextPayout
+        ? formatCurrency(
+            Number(nextPayout.expectedAmount),
+          )
+        : "None",
+      description: nextPayout
+        ? `${nextPayout.savingsCircle.name} · ${formatDate(
+            nextPayout.scheduledDate,
+          )}`
+        : "No upcoming payout scheduled",
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -92,11 +276,32 @@ const initials = userName
             aria-label="Dashboard navigation"
             className="flex gap-2 overflow-x-auto md:flex-col"
           >
-            <DashboardLink href="/dashboard" label="Overview" active />
-            <DashboardLink href="/circles" label="My circles" />
-            <DashboardLink href="/contributions" label="Contributions" />
-            <DashboardLink href="/dashboard" label="Payouts" />
-            <DashboardLink href="/dashboard" label="Notifications" />
+            <DashboardLink
+              href="/dashboard"
+              label="Overview"
+              active
+            />
+
+            <DashboardLink
+              href="/circles"
+              label="My circles"
+            />
+
+            <DashboardLink
+              href="/contributions"
+              label="Contributions"
+            />
+
+            <DashboardLink
+              href="/dashboard"
+              label="Payouts"
+            />
+
+            <DashboardLink
+              href="/dashboard"
+              label="Notifications"
+            />
+
             <LogoutButton />
           </nav>
         </aside>
@@ -104,7 +309,9 @@ const initials = userName
         <main className="min-w-0 p-6 sm:p-8">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="font-medium text-emerald-600">Dashboard</p>
+              <p className="font-medium text-emerald-600">
+                Dashboard
+              </p>
 
               <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">
                 Your savings overview
@@ -115,21 +322,21 @@ const initials = userName
               </p>
             </div>
 
-           <div className="flex flex-col gap-3 sm:flex-row">
-            <Link
-              href="/circles/join"
-              className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-center font-semibold text-slate-700 transition hover:bg-slate-100"
-            >
-              Join a circle
-            </Link>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="/circles/join"
+                className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-center font-semibold text-slate-700 transition hover:bg-slate-100"
+              >
+                Join a circle
+              </Link>
 
-            <Link
-              href="/circles/create"
-              className="rounded-lg bg-emerald-600 px-5 py-3 text-center font-semibold text-white transition hover:bg-emerald-700"
-            >
-              Create new circle
-            </Link>
-          </div>
+              <Link
+                href="/circles/create"
+                className="rounded-lg bg-emerald-600 px-5 py-3 text-center font-semibold text-white transition hover:bg-emerald-700"
+              >
+                Create new circle
+              </Link>
+            </div>
           </div>
 
           <section
@@ -157,78 +364,283 @@ const initials = userName
           </section>
 
           <div className="mt-8 grid gap-8 xl:grid-cols-[1.5fr_1fr]">
-            <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="flex items-center justify-between">
+            <section>
+              <div className="flex items-end justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900">
-                    Family Growth Circle
-                  </h2>
-
-                  <p className="mt-1 text-sm text-slate-500">
-                    July 2026 contribution cycle
+                  <p className="font-semibold text-emerald-600">
+                    Current activity
                   </p>
+
+                  <h2 className="mt-1 text-2xl font-bold text-slate-900">
+                    Active savings circles
+                  </h2>
                 </div>
 
-                <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
-                  Active
-                </span>
+                <Link
+                  href="/circles"
+                  className="text-sm font-semibold text-emerald-600 hover:text-emerald-700"
+                >
+                  View all
+                </Link>
               </div>
 
-              <div className="mt-7">
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-600">
-                    Contribution progress
-                  </span>
+              {activeMemberships.length === 0 ? (
+                <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
+                  <h3 className="text-xl font-bold text-slate-900">
+                    No active circles
+                  </h3>
 
-                  <span className="font-semibold text-slate-900">
-                    £800 of £1,000
-                  </span>
+                  <p className="mx-auto mt-3 max-w-md text-slate-600">
+                    Create a new savings circle or join an existing one.
+                  </p>
+
+                  <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+                    <Link
+                      href="/circles/join"
+                      className="rounded-lg border border-slate-300 px-5 py-3 font-semibold text-slate-700 hover:bg-slate-50"
+                    >
+                      Join a circle
+                    </Link>
+
+                    <Link
+                      href="/circles/create"
+                      className="rounded-lg bg-emerald-600 px-5 py-3 font-semibold text-white hover:bg-emerald-700"
+                    >
+                      Create a circle
+                    </Link>
+                  </div>
                 </div>
+              ) : (
+                <div className="mt-6 space-y-5">
+                  {activeMemberships.map(
+                    (membership) => {
+                      const circle =
+                        membership.savingsCircle;
 
-                <div className="mt-3 h-3 overflow-hidden rounded-full bg-slate-200">
-                  <div className="h-full w-4/5 rounded-full bg-emerald-600" />
+                      const openCycle =
+                        circle.cycles[0];
+
+                      const collectedAmount =
+                        openCycle?.contributions.reduce(
+                          (total, contribution) =>
+                            total +
+                            Number(
+                              contribution.amountPaid,
+                            ),
+                          0,
+                        ) ?? 0;
+
+                      const expectedAmount =
+                        openCycle
+                          ? Number(
+                              openCycle.expectedAmount,
+                            )
+                          : 0;
+
+                      const progress =
+                        expectedAmount > 0
+                          ? Math.min(
+                              100,
+                              Math.round(
+                                (collectedAmount /
+                                  expectedAmount) *
+                                  100,
+                              ),
+                            )
+                          : 0;
+
+                      return (
+                        <article
+                          key={membership.id}
+                          className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+                        >
+                          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                              <div className="flex flex-wrap items-center gap-3">
+                                <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                                  {formatStatus(
+                                    membership.role,
+                                  )}
+                                </span>
+
+                                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                                  {
+                                    circle._count
+                                      .members
+                                  }{" "}
+                                  members
+                                </span>
+                              </div>
+
+                              <h3 className="mt-4 text-xl font-bold text-slate-900">
+                                {circle.name}
+                              </h3>
+
+                              <p className="mt-2 text-sm text-slate-600">
+                                {formatCurrency(
+                                  Number(
+                                    circle.contributionAmount,
+                                  ),
+                                )}{" "}
+                                {circle.frequency.toLowerCase()}
+                              </p>
+                            </div>
+
+                            <Link
+                              href={`/circles/${circle.id}`}
+                              className="text-sm font-semibold text-emerald-600 hover:text-emerald-700"
+                            >
+                              Open circle →
+                            </Link>
+                          </div>
+
+                          {openCycle ? (
+                            <div className="mt-6 rounded-xl bg-slate-50 p-5">
+                              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                                <div>
+                                  <p className="text-sm text-slate-500">
+                                    Open cycle{" "}
+                                    {
+                                      openCycle.cycleNumber
+                                    }
+                                  </p>
+
+                                  <p className="mt-1 font-semibold text-slate-900">
+                                    Recipient:{" "}
+                                    {
+                                      openCycle
+                                        .payoutRecipient
+                                        .user.firstName
+                                    }{" "}
+                                    {
+                                      openCycle
+                                        .payoutRecipient
+                                        .user.lastName
+                                    }
+                                  </p>
+                                </div>
+
+                                <p className="font-bold text-emerald-600">
+                                  {formatCurrency(
+                                    collectedAmount,
+                                  )}{" "}
+                                  of{" "}
+                                  {formatCurrency(
+                                    expectedAmount,
+                                  )}
+                                </p>
+                              </div>
+
+                              <div className="mt-5">
+                                <div className="mb-2 flex justify-between text-sm">
+                                  <span className="text-slate-600">
+                                    Collection progress
+                                  </span>
+
+                                  <span className="font-semibold text-slate-900">
+                                    {progress}%
+                                  </span>
+                                </div>
+
+                                <div className="h-3 overflow-hidden rounded-full bg-slate-200">
+                                  <div
+                                    className="h-full rounded-full bg-emerald-600"
+                                    style={{
+                                      width: `${progress}%`,
+                                    }}
+                                  />
+                                </div>
+                              </div>
+
+                              <Link
+                                href={`/circles/${circle.id}/cycles/${openCycle.id}`}
+                                className="mt-5 inline-block text-sm font-semibold text-emerald-600 hover:text-emerald-700"
+                              >
+                                View open cycle →
+                              </Link>
+                            </div>
+                          ) : (
+                            <p className="mt-6 rounded-xl bg-slate-50 p-5 text-sm text-slate-600">
+                              There is currently no open contribution cycle.
+                            </p>
+                          )}
+                        </article>
+                      );
+                    },
+                  )}
                 </div>
-              </div>
-
-              <dl className="mt-8 grid gap-5 sm:grid-cols-3">
-                <CircleDetail label="Members paid" value="8 of 10" />
-                <CircleDetail label="Deadline" value="31 July" />
-                <CircleDetail label="Recipient" value="Ada Nwosu" />
-              </dl>
-
-              <button
-                type="button"
-                className="mt-8 rounded-lg border border-slate-300 px-5 py-3 font-semibold text-slate-700 transition hover:bg-slate-50"
-              >
-                View circle
-              </button>
+              )}
             </section>
 
             <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-xl font-bold text-slate-900">
-                Recent activity
-              </h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-slate-900">
+                  Recent payments
+                </h2>
 
-              <div className="mt-6 space-y-6">
-                {activities.map((activity) => (
-                  <article
-                    key={`${activity.title}-${activity.date}`}
-                    className="border-b border-slate-100 pb-5 last:border-0 last:pb-0"
-                  >
-                    <h3 className="font-semibold text-slate-900">
-                      {activity.title}
-                    </h3>
-
-                    <p className="mt-1 text-sm leading-6 text-slate-600">
-                      {activity.details}
-                    </p>
-
-                    <time className="mt-2 block text-xs text-slate-400">
-                      {activity.date}
-                    </time>
-                  </article>
-                ))}
+                <Link
+                  href="/contributions"
+                  className="text-sm font-semibold text-emerald-600 hover:text-emerald-700"
+                >
+                  View all
+                </Link>
               </div>
+
+              {recentPayments.length === 0 ? (
+                <div className="mt-8 rounded-xl bg-slate-50 p-6 text-center">
+                  <p className="text-sm text-slate-600">
+                    No payments have been recorded yet.
+                  </p>
+                </div>
+              ) : (
+                <div className="mt-6 space-y-6">
+                  {recentPayments.map(
+                    (payment) => (
+                      <article
+                        key={payment.id}
+                        className="border-b border-slate-100 pb-5 last:border-0 last:pb-0"
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <h3 className="font-semibold text-slate-900">
+                              {
+                                payment.cycle
+                                  .savingsCircle
+                                  .name
+                              }
+                            </h3>
+
+                            <p className="mt-1 text-sm leading-6 text-slate-600">
+                              Cycle{" "}
+                              {
+                                payment.cycle
+                                  .cycleNumber
+                              }{" "}
+                              contribution
+                            </p>
+                          </div>
+
+                          <p className="font-bold text-emerald-600">
+                            {formatCurrency(
+                              Number(
+                                payment.amountPaid,
+                              ),
+                            )}
+                          </p>
+                        </div>
+
+                        <time className="mt-2 block text-xs text-slate-400">
+                          {payment.paidAt
+                            ? formatDate(
+                                payment.paidAt,
+                              )
+                            : "Date unavailable"}
+                        </time>
+                      </article>
+                    ),
+                  )}
+                </div>
+              )}
             </section>
           </div>
         </main>
@@ -262,16 +674,28 @@ function DashboardLink({
   );
 }
 
-type CircleDetailProps = {
-  label: string;
-  value: string;
-};
+function formatCurrency(amount: number) {
+  return new Intl.NumberFormat("en-GB", {
+    style: "currency",
+    currency: "GBP",
+  }).format(amount);
+}
 
-function CircleDetail({ label, value }: CircleDetailProps) {
-  return (
-    <div>
-      <dt className="text-sm text-slate-500">{label}</dt>
-      <dd className="mt-1 font-semibold text-slate-900">{value}</dd>
-    </div>
-  );
+function formatDate(date: Date) {
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+}
+
+function formatStatus(value: string) {
+  return value
+    .toLowerCase()
+    .replaceAll("_", " ")
+    .replace(
+      /\b\w/g,
+      (character) =>
+        character.toUpperCase(),
+    );
 }
