@@ -47,18 +47,24 @@ export async function markContributionPaid(
             },
           },
 
-          include: {
-            cycle: {
-              include: {
-                savingsCircle: {
-                  include: {
-                    owner: true,
-                  },
-                },
-              },
+         include: {
+          member: {
+            include: {
+              user: true,
             },
           },
-        });
+
+          cycle: {
+            include: {
+              savingsCircle: {
+                include: {
+                  owner: true,
+                },
+      },
+    },
+  },
+},
+  });
 
       if (!contribution) {
         throw new ContributionError(
@@ -120,6 +126,20 @@ export async function markContributionPaid(
         },
       });
 
+      await transaction.notification.create({
+  data: {
+    userId: contribution.member.userId,
+    type: "CONTRIBUTION_PAID",
+    title: "Contribution recorded",
+    message: `Your contribution of £${Number(
+      contribution.amountDue,
+    ).toFixed(2)} for ${circle.name}, Cycle ${
+      contribution.cycle.cycleNumber
+    }, was marked as paid.`,
+    link: `/circles/${circleId}/cycles/${cycleId}`,
+  },
+});
+
       const remainingContributions =
         await transaction.contribution.count({
           where: {
@@ -139,6 +159,17 @@ export async function markContributionPaid(
           data: {
             status: "COMPLETED",
             payoutStatus: "READY",
+          },
+        });
+
+        await transaction.notification.create({
+          data: {
+            userId: circle.owner.id,
+            type: "PAYOUT_READY",
+            title: "Payout ready",
+            message: `All contributions for ${circle.name}, Cycle ${contribution.cycle.cycleNumber}, have been collected. The payout is ready for confirmation.`,
+            link: `/circles/${circleId}/cycles/${cycleId}`,
+            priority: "HIGH",
           },
         });
 

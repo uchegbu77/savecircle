@@ -59,14 +59,32 @@ enum PayoutStatus {
   FAILED
 }
 
+enum NotificationType {
+  CIRCLE_INVITATION
+  MEMBER_JOINED
+  CIRCLE_STARTED
+  CONTRIBUTION_DUE
+  CONTRIBUTION_PAID
+  PAYOUT_READY
+  PAYOUT_COMPLETED
+  GENERAL
+}
+
+enum NotificationPriority {
+  LOW
+  NORMAL
+  HIGH
+}
+
 model User {
-  id        String   @id @default(cuid())
-  firstName String
-  lastName  String
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String         @id @default(cuid())
+  firstName     String
+  lastName      String
+  email         String         @unique
+  password      String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  notifications Notification[]
 
   ownedCircles      SavingsCircle[] @relation("CircleOwner")
   circleMemberships CircleMember[]
@@ -157,4 +175,23 @@ model Contribution {
   @@unique([cycleId, memberId])
   @@index([memberId])
   @@index([status])
+}
+
+model Notification {
+  id        String               @id @default(cuid())
+  userId    String
+  type      NotificationType
+  priority  NotificationPriority @default(NORMAL)
+  title     String
+  message   String
+  link      String?
+  isRead    Boolean              @default(false)
+  readAt    DateTime?
+  createdAt DateTime             @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, isRead])
+  @@index([createdAt])
 }

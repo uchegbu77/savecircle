@@ -77,6 +77,14 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
+  const unreadNotificationCount =
+  await prisma.notification.count({
+    where: {
+      userId: user.id,
+      isRead: false,
+    },
+  });
+
   const activeMemberships =
     user.circleMemberships.filter(
       (membership) =>
@@ -297,10 +305,20 @@ export default async function DashboardPage() {
               label="Payouts"
             />
 
-            <DashboardLink
-              href="/dashboard"
-              label="Notifications"
-            />
+           <Link
+              href="/notifications"
+              className="flex shrink-0 items-center justify-between gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+            >
+              <span>Notifications</span>
+
+              {unreadNotificationCount > 0 && (
+                <span className="flex min-w-6 items-center justify-center rounded-full bg-red-500 px-2 py-1 text-xs font-bold text-white">
+                  {unreadNotificationCount > 99
+                    ? "99+"
+                    : unreadNotificationCount}
+                </span>
+              )}
+            </Link>
 
             <LogoutButton />
           </nav>

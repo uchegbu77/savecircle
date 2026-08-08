@@ -184,6 +184,21 @@ export async function completePayout(
         },
       });
 
+      await transaction.notification.create({
+          data: {
+            userId: cycle.payoutRecipient.userId,
+            type: "PAYOUT_COMPLETED",
+            title: "Your payout was completed",
+            message: `The payout of £${Number(
+              cycle.expectedAmount,
+            ).toFixed(2)} for ${circle.name}, Cycle ${
+              cycle.cycleNumber
+            }, was confirmed as completed.`,
+            link: `/circles/${circleId}/cycles/${cycleId}`,
+            priority: "HIGH",
+          },
+        });
+
       const remainingPayouts =
         await transaction.contributionCycle.count({
           where: {

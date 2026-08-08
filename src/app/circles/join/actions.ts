@@ -58,6 +58,9 @@ export async function joinCircle(
       where: {
         inviteCode,
       },
+      include: {
+        owner: true,
+      }
     });
 
   if (!circle) {
@@ -122,7 +125,8 @@ export async function joinCircle(
   };
 }
 
-  await prisma.circleMember.create({
+  await prisma.$transaction(async (transaction) => {
+  await transaction.circleMember.create({
     data: {
       userId: user.id,
       savingsCircleId: circle.id,
@@ -130,6 +134,17 @@ export async function joinCircle(
       status: "ACTIVE",
     },
   });
+
+  await transaction.notification.create({
+    data: {
+      userId: circle.owner.id,
+      type: "MEMBER_JOINED",
+      title: "New member joined",
+      message: `${user.firstName} ${user.lastName} joined ${circle.name}.`,
+      link: `/circles/${circle.id}`,
+    },
+  });
+});
 
   redirect(
     `/circles/${circle.id}`,

@@ -38,7 +38,8 @@ export async function startCircle(
 
   try {
     await prisma.$transaction(
-      async (transaction) => {
+      async (transaction) => 
+      {
         const circle =
           await transaction.savingsCircle.findUnique({
             where: {
@@ -239,6 +240,17 @@ export async function startCircle(
           data: {
             status: "ACTIVE",
           },
+        });
+      
+      await transaction.notification.createMany({
+        data: circle.members.map((member) => ({
+        userId: member.userId,
+        type: "CIRCLE_STARTED",
+        title: "Savings circle started",
+        message: `${circle.name} is now active. Your first contribution cycle has opened.`,
+        link: `/circles/${circle.id}/cycles`,
+        priority: "HIGH",
+           })),
         });
       },
     );
