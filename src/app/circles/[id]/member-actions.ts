@@ -1,0 +1,224 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+
+import { auth } from "../../../auth";
+import { prisma } from "../../../lib/prisma";
+
+async function getAuthorisedOwner(
+  circleId: string,
+) {
+  const session = await auth();
+
+  if (!session?.user?.email) {
+    throw new Error(
+      "You must be logged in.",
+    );
+  }
+
+  const circle =
+    await prisma.savingsCircle.findUnique({
+      where: {
+        id: circleId,
+      },
+
+      include: {
+        owner: true,
+      },
+    });
+
+  if (!circle) {
+    throw new Error(
+      "Savings circle not found.",
+    );
+  }
+
+  if (
+    circle.owner.email !==
+    session.user.email
+  ) {
+    throw new Error(
+      "Only the circle owner can manage members.",
+    );
+  }
+
+  if (circle.status !== "DRAFT") {
+    throw new Error(
+      "Members cannot be changed after the circle starts.",
+    );
+  }
+
+  return circle;
+}
+
+export async function promoteMember(
+  circleId: string,
+  memberId: string,
+): Promise<void> {
+  await getAuthorisedOwner(
+    circleId,
+  );
+
+  const member =
+    await prisma.circleMember.findFirst({
+      where: {
+        id: memberId,
+        savingsCircleId:
+          circleId,
+        status: "ACTIVE",
+      },
+    });
+
+  if (!member) {
+    throw new Error(
+      "Member not found.",
+    );
+  }
+
+  if (member.role === "OWNER") {
+    throw new Error(
+      "The owner role cannot be changed.",
+    );
+  }
+
+  await prisma.circleMember.update({
+    where: {
+      id: member.id,
+    },
+
+    data: {
+      role: "ADMIN",
+    },
+  });
+
+  revalidateCircle(
+    circleId,
+  );
+}
+
+export async function demoteMember(
+  circleId: string,
+  memberId: string,
+): Promise<void> {
+  await getAuthorisedOwner(
+    circleId,
+  );
+
+  const member =
+    await prisma.circleMember.findFirst({
+      where: {
+        id: memberId,
+        savingsCircleId:
+          circleId,
+        status: "ACTIVE",
+      },
+    });
+
+  if (!member) {
+    throw new Error(
+      "Member not found.",
+    );
+  }
+
+  if (member.role !== "ADMIN") {
+    throw new Error(
+      "Only administrators can be demoted.",
+    );
+  }
+
+  await prisma.circleMember.update({
+    where: {
+      id: member.id,
+    },
+
+    data: {
+      role: "MEMBER",
+    },
+  });
+
+  revalidateCircle(
+    circleId,
+  );
+}
+
+export async function removeMember(
+  circleId: string,
+  memberId: string,
+): Promise<void> {
+  await getAuthorisedOwner(
+    circleId,
+  );
+
+  const member =
+    await prisma.circleMember.findFirst({
+      where: {
+        id: memberId,
+        savingsCircleId:
+          circleId,
+        status: "ACTIVE",
+      },
+
+      include: {
+        user: true,
+      },
+    });
+
+  if (!member) {
+    throw new Error(
+      "Member not found.",
+    );
+  }
+
+  if (member.role === "OWNER") {
+    throw new Error(
+      "The circle owner cannot be removed.",
+    );
+  }
+
+  await prisma.$transaction(
+    async (transaction) => {
+      await transaction.circleMember.update({
+        where: {
+          id: member.id,
+        },
+
+        data: {
+          status: "REMOVED",
+          payoutPosition: null,
+        },
+      });
+
+      await transaction.notification.create({
+        data: {
+          userId: member.userId,
+          type: "GENERAL",
+          priority: "HIGH",
+          title:
+            "Removed from savings circle",
+          message:
+            "You were removed from a savings circle by its owner.",
+          link: "/circles",
+        },
+      });
+    },
+  );
+
+  revalidateCircle(
+    circleId,
+  );
+}
+
+function revalidateCircle(
+  circleId: string,
+) {
+  revalidatePath(
+    `/circles/${circleId}`,
+  );
+
+  revalidatePath(
+    `/circles/${circleId}/payout-order`,
+  );
+
+  revalidatePath("/circles");
+  revalidatePath("/dashboard");
+}

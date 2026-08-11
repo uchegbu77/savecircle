@@ -4,6 +4,11 @@ import StartCircleForm from "../../../components/start-circle-form";
 
 import { auth } from "../../../auth";
 import { prisma } from "../../../lib/prisma";
+import {
+  demoteMember,
+  promoteMember,
+  removeMember,
+} from "./member-actions";
 
 type CirclePageProps = {
   params: Promise<{
@@ -191,6 +196,12 @@ const allPositionsAssigned =
             >
               View payout order
             </Link>
+            <Link
+              href={`/circles/${circle.id}/settings`}
+              className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-center font-semibold text-slate-700 transition hover:bg-slate-50"
+            >
+              Circle settings
+            </Link>
 
             {circle.status === "ACTIVE" ? (
               <Link
@@ -199,6 +210,7 @@ const allPositionsAssigned =
               >
                 Manage contributions
               </Link>
+              
             ) : (
               <Link
                 href={`/circles/${circle.id}/cycles`}
@@ -242,6 +254,60 @@ const allPositionsAssigned =
                     <p className="mt-1 text-sm text-slate-500">
                       {member.user.email}
                     </p>
+                      {isOwner &&
+                          circle.status === "DRAFT" &&
+                          member.role !== "OWNER" && (
+                        <div className="flex flex-wrap gap-2">
+                              {member.role ===
+                              "MEMBER" ? (
+                                <form
+                                  action={promoteMember.bind(
+                                    null,
+                                    circle.id,
+                                    member.id,
+                                  )}
+                                >
+                                  <button
+                                    type="submit"
+                                    className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                                  >
+                                    Make admin
+                                  </button>
+                                </form>
+                              ) : (
+                                <form
+                                  action={demoteMember.bind(
+                                    null,
+                                    circle.id,
+                                    member.id,
+                                  )}
+                                >
+                                  <button
+                                    type="submit"
+                                    className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                                  >
+                                    Remove admin
+                                  </button>
+                                </form>
+                              )}
+
+                              <form
+                                action={removeMember.bind(
+                                  null,
+                                  circle.id,
+                                  member.id,
+                                )}
+                              >
+                                <button
+                                  type="submit"
+                                  className="rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50"
+                                >
+                                  Remove member
+                                </button>
+                              </form>
+                            </div>
+                          )}
+
                   </div>
 
                   <div className="flex items-center gap-3">
@@ -256,6 +322,8 @@ const allPositionsAssigned =
                       )}
                     </span>
                   </div>
+
+                  
                 </article>
               ),
             )}
