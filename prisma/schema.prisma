@@ -76,6 +76,25 @@ enum NotificationPriority {
   HIGH
 }
 
+enum ActivityType {
+  CIRCLE_CREATED
+  CIRCLE_UPDATED
+  INVITE_CODE_CHANGED
+
+  MEMBER_JOINED
+  MEMBER_PROMOTED
+  MEMBER_DEMOTED
+  MEMBER_REMOVED
+
+  CIRCLE_STARTED
+
+  CONTRIBUTION_PAID
+  CONTRIBUTION_RESET
+
+  PAYOUT_COMPLETED
+  CIRCLE_COMPLETED
+}
+
 model User {
   id            String         @id @default(cuid())
   firstName     String
@@ -88,6 +107,8 @@ model User {
 
   ownedCircles      SavingsCircle[] @relation("CircleOwner")
   circleMemberships CircleMember[]
+
+  activitiesPerformed ActivityLog[] @relation("ActivityActor")
 }
 
 model SavingsCircle {
@@ -103,6 +124,8 @@ model SavingsCircle {
   ownerId            String
   createdAt          DateTime              @default(now())
   updatedAt          DateTime              @updatedAt
+
+  activityLogs ActivityLog[]
 
   owner   User                @relation("CircleOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   members CircleMember[]
@@ -193,5 +216,24 @@ model Notification {
 
   @@index([userId])
   @@index([userId, isRead])
+  @@index([createdAt])
+}
+
+model ActivityLog {
+  id              String       @id @default(cuid())
+  savingsCircleId String
+  actorUserId     String?
+  type            ActivityType
+  title           String
+  description     String
+  metadata        Json?
+  createdAt       DateTime     @default(now())
+
+  savingsCircle SavingsCircle @relation(fields: [savingsCircleId], references: [id], onDelete: Cascade)
+
+  actor User? @relation("ActivityActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([savingsCircleId])
+  @@index([actorUserId])
   @@index([createdAt])
 }

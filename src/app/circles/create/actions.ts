@@ -6,6 +6,7 @@ import { auth } from "../../../auth";
 import { generateInviteCode } from "../../../lib/invite-code";
 import { prisma } from "../../../lib/prisma";
 import { validateCreateCircle } from "../../../lib/validation";
+import { createActivityLog } from "../../../lib/activity-log";
 
 export type CreateCircleState = {
   errors?: Record<string, string>;
@@ -87,37 +88,61 @@ export async function createCircle(
     await createUniqueInviteCode();
 
   const circle =
-    await prisma.savingsCircle.create({
-      data: {
-        name: name.trim(),
-        description:
-          description.trim() || null,
+  await prisma.$transaction(
+    async (transaction) => {
+      const createdCircle =
+        await transaction.savingsCircle.create({
+          data: {
+            name: name.trim(),
 
-        contributionAmount:
-          contributionAmount,
+            description:
+              description.trim() ||
+              null,
 
-        frequency:
-          frequency === "WEEKLY"
-            ? "WEEKLY"
-            : "MONTHLY",
+            contributionAmount,
 
-        startDate: new Date(startDate),
+            frequency:
+              frequency ===
+              "WEEKLY"
+                ? "WEEKLY"
+                : "MONTHLY",
 
-        maxMembers: Number(maxMembers),
+            startDate:
+              new Date(startDate),
 
-        inviteCode,
+            maxMembers:
+              Number(maxMembers),
 
-        ownerId: user.id,
+            inviteCode,
 
-        members: {
-          create: {
-            userId: user.id,
-            role: "OWNER",
-            status: "ACTIVE",
+            ownerId: user.id,
+
+            members: {
+              create: {
+                userId: user.id,
+                role: "OWNER",
+                status: "ACTIVE",
+                payoutPosition: 1,
+              },
+            },
           },
-        },
-      },
-    });
+        });
+
+      await createActivityLog({
+        transaction,
+        circleId:
+          createdCircle.id,
+        actorUserId: user.id,
+        type: "CIRCLE_CREATED",
+        title:
+          "Savings circle created",
+        description:
+          `${user.firstName} ${user.lastName} created ${createdCircle.name}.`,
+      });
+
+      return createdCircle;
+    },
+  );
 
   redirect(`/circles/${circle.id}`);
 }

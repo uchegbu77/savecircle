@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { auth } from "../../../../../auth";
 import { prisma } from "../../../../../lib/prisma";
+import { createActivityLog } from "../../../../../lib/activity-log";
 
 export type CompletePayoutState = {
   error?: string;
@@ -184,6 +185,27 @@ export async function completePayout(
         },
       });
 
+        await createActivityLog({
+          transaction,
+          circleId,
+          actorUserId: owner.id,
+          type:
+            "PAYOUT_COMPLETED",
+          title:
+            "Payout completed",
+          description:
+            `Cycle ${cycle.cycleNumber} payout to ${cycle.payoutRecipient.user.firstName} ${cycle.payoutRecipient.user.lastName} was confirmed as completed.`,
+          metadata: {
+            cycleNumber:
+              cycle.cycleNumber,
+            amount:
+              Number(
+                cycle.expectedAmount,
+              ),
+          },
+        });
+
+
       await transaction.notification.create({
           data: {
             userId: cycle.payoutRecipient.userId,
@@ -225,6 +247,19 @@ export async function completePayout(
           },
         });
       }
+
+      await createActivityLog({
+          transaction,
+          circleId,
+          actorUserId: owner.id,
+          type:
+            "CIRCLE_COMPLETED",
+          title:
+            "Savings circle completed",
+          description:
+            `${circle.name} completed all scheduled contribution cycles and payouts.`,
+        });
+
     });
   } catch (error) {
     if (error instanceof PayoutError) {

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "../../../auth";
 import { getCycleDate } from "../../../lib/cycle-dates";
 import { prisma } from "../../../lib/prisma";
+import { createActivityLog } from "../../..//lib/activity-log";
 
 export type StartCircleState = {
   error?: string;
@@ -241,7 +242,23 @@ export async function startCircle(
             status: "ACTIVE",
           },
         });
-      
+      await createActivityLog({
+            transaction,
+            circleId: circle.id,
+            actorUserId:
+              circle.owner.id,
+            type: "CIRCLE_STARTED",
+            title:
+              "Savings circle started",
+            description:
+              `${circle.owner.firstName} ${circle.owner.lastName} activated the savings circle.`,
+            metadata: {
+              memberCount:
+                circle.members.length,
+              cycleCount:
+                circle.members.length,
+            },
+          });
       await transaction.notification.createMany({
         data: circle.members.map((member) => ({
         userId: member.userId,

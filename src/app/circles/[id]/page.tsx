@@ -202,6 +202,19 @@ const allPositionsAssigned =
             >
               Circle settings
             </Link>
+            <Link
+              href={`/circles/${circle.id}/activity`}
+              className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-center font-semibold text-slate-700 transition hover:bg-slate-50"
+            >
+              Activity history
+            </Link>
+
+            <Link
+              href={`/circles/${circle.id}/payouts`}
+              className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-center font-semibold text-slate-700 transition hover:bg-slate-50"
+            >
+              Payout history
+            </Link>
 
             {circle.status === "ACTIVE" ? (
               <Link
@@ -210,8 +223,8 @@ const allPositionsAssigned =
               >
                 Manage contributions
               </Link>
-              
-            ) : (
+              )
+             : (
               <Link
                 href={`/circles/${circle.id}/cycles`}
                 className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-center font-semibold text-slate-700 transition hover:bg-slate-50"

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { auth } from "../../../auth";
 import { prisma } from "../../../lib/prisma";
+import { createActivityLog } from "../../../lib/activity-log";
 
 async function getAuthorisedOwner(
   circleId: string,
@@ -55,9 +56,7 @@ export async function promoteMember(
   circleId: string,
   memberId: string,
 ): Promise<void> {
-  await getAuthorisedOwner(
-    circleId,
-  );
+  const circle = await getAuthorisedOwner(circleId);
 
   const member =
     await prisma.circleMember.findFirst({
@@ -66,6 +65,9 @@ export async function promoteMember(
         savingsCircleId:
           circleId,
         status: "ACTIVE",
+      },
+      include: {
+        user: true,
       },
     });
 
@@ -81,15 +83,28 @@ export async function promoteMember(
     );
   }
 
-  await prisma.circleMember.update({
-    where: {
-      id: member.id,
-    },
+ await prisma.$transaction(
+  async (transaction) => {
+    await transaction.circleMember.update({
+      where: {
+        id: member.id,
+      },
 
-    data: {
-      role: "ADMIN",
-    },
-  });
+      data: {
+        role: "ADMIN",
+      },
+    });
+
+    await createActivityLog({
+      transaction,
+      circleId,
+      actorUserId: circle.ownerId,
+      type: "MEMBER_PROMOTED",
+      title:"Member promoted",
+      description:  `${member.user.firstName} ${member.user.lastName}  was promoted to administrator.`,
+    });
+  },
+);
 
   revalidateCircle(
     circleId,
@@ -100,17 +115,19 @@ export async function demoteMember(
   circleId: string,
   memberId: string,
 ): Promise<void> {
-  await getAuthorisedOwner(
+  const circle = await getAuthorisedOwner(
     circleId,
   );
 
-  const member =
-    await prisma.circleMember.findFirst({
+  const member = await prisma.circleMember.findFirst({
       where: {
         id: memberId,
         savingsCircleId:
           circleId,
         status: "ACTIVE",
+      },
+      include: {
+        user: true,
       },
     });
 
@@ -126,15 +143,32 @@ export async function demoteMember(
     );
   }
 
-  await prisma.circleMember.update({
-    where: {
-      id: member.id,
-    },
+  await prisma.$transaction(
+  async (transaction) => {
+    await transaction.circleMember.update({
+      where: {
+        id: member.id,
+      },
 
-    data: {
-      role: "MEMBER",
-    },
-  });
+      data: {
+        role: "MEMBER",
+      },
+    });
+
+    await createActivityLog({
+      transaction,
+      circleId,
+      actorUserId:
+        circle.ownerId,
+      type:
+        "MEMBER_DEMOTED",
+      title:
+        "Administrator demoted",
+      description:
+        `${member.user.firstName} ${member.user.lastName} was changed back to a regular member.`,
+    });
+  },
+);
 
   revalidateCircle(
     circleId,
@@ -145,7 +179,7 @@ export async function removeMember(
   circleId: string,
   memberId: string,
 ): Promise<void> {
-  await getAuthorisedOwner(
+  const circle = await getAuthorisedOwner(
     circleId,
   );
 
@@ -178,14 +212,17 @@ export async function removeMember(
   await prisma.$transaction(
     async (transaction) => {
       await transaction.circleMember.update({
-        where: {
-          id: member.id,
-        },
+        where: { id: member.id },
+        data: { status: "REMOVED", payoutPosition: null },
+      });
 
-        data: {
-          status: "REMOVED",
-          payoutPosition: null,
-        },
+      await createActivityLog({
+        transaction,
+        circleId,
+        actorUserId: circle.ownerId,
+        type: "MEMBER_REMOVED",
+        title: "Member removed",
+        description: `${member.user.firstName} ${member.user.lastName} was removed from the savings circle.`,
       });
 
       await transaction.notification.create({
@@ -193,10 +230,8 @@ export async function removeMember(
           userId: member.userId,
           type: "GENERAL",
           priority: "HIGH",
-          title:
-            "Removed from savings circle",
-          message:
-            "You were removed from a savings circle by its owner.",
+          title:"Removed from savings circle",
+          message:"You were removed from a savings circle by its owner.",
           link: "/circles",
         },
       });

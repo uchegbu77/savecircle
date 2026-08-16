@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "../../../../../auth";
 import { prisma } from "../../../../../lib/prisma";
 import type { Prisma } from "../../../../../generated/prisma/client";
+import { createActivityLog } from "../../../../../lib/activity-log";
 
 export type ContributionActionState = {
   error?: string;
@@ -125,7 +126,26 @@ export async function markContributionPaid(
             notes || null,
         },
       });
-
+        await createActivityLog({
+  transaction,
+  circleId,
+  actorUserId:
+    circle.owner.id,
+  type:
+    "CONTRIBUTION_PAID",
+  title:
+    "Contribution recorded",
+  description:
+    `${contribution.member.user.firstName} ${contribution.member.user.lastName}'s contribution for Cycle ${contribution.cycle.cycleNumber} was recorded as paid.`,
+  metadata: {
+    amount: Number(
+      contribution.amountDue,
+    ),
+    cycleNumber:
+      contribution.cycle
+        .cycleNumber,
+  },
+});
       await transaction.notification.create({
   data: {
     userId: contribution.member.userId,
@@ -240,6 +260,11 @@ export async function resetContributionPayment(
           },
 
           include: {
+            member: {
+              include: {
+                user: true,
+              },
+            },
             cycle: {
               include: {
                 savingsCircle: {
@@ -287,6 +312,25 @@ export async function resetContributionPayment(
           paidAt: null,
           reference: null,
           notes: null,
+        },
+      });
+
+      await createActivityLog({
+        transaction,
+        circleId,
+        actorUserId:
+          contribution.cycle
+            .savingsCircle.owner.id,
+        type:
+          "CONTRIBUTION_RESET",
+        title:
+          "Contribution reset",
+        description:
+          `${contribution.member.user.firstName} ${contribution.member.user.lastName}'s payment record was reset to pending.`,
+        metadata: {
+          cycleNumber:
+            contribution.cycle
+              .cycleNumber,
         },
       });
 

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { auth } from "../../../auth";
 import { prisma } from "../../../lib/prisma";
 import { validateInviteCode } from "../../../lib/validation";
+import { createActivityLog } from "../../../lib/activity-log";
 
 export type JoinCircleState = {
   error?: string;
@@ -144,6 +145,16 @@ export async function joinCircle(
       link: `/circles/${circle.id}`,
     },
   });
+
+  await createActivityLog({
+  transaction,
+  circleId: circle.id,
+  actorUserId: user.id,
+  type: "MEMBER_JOINED",
+  title: "Member joined",
+  description:
+    `${user.firstName} ${user.lastName} joined the savings circle.`,
+});
 });
 
   redirect(

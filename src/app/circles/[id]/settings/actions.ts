@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "../../../../auth";
 import { generateInviteCode } from "../../../../lib/invite-code";
 import { prisma } from "../../../../lib/prisma";
+import { createActivityLog } from "../../../../lib/activity-log";
 
 export type CircleSettingsState = {
   error?: string;
@@ -162,7 +163,9 @@ export async function updateCircleSettings(
       };
     }
 
-    await prisma.savingsCircle.update({
+    await prisma.$transaction(
+  async (transaction) => {
+    await transaction.savingsCircle.update({
       where: {
         id: circle.id,
       },
@@ -178,6 +181,19 @@ export async function updateCircleSettings(
         maxMembers,
       },
     });
+
+    await createActivityLog({
+      transaction,
+      circleId: circle.id,
+      actorUserId: user.id,
+      type: "CIRCLE_UPDATED",
+      title:
+        "Circle settings updated",
+      description:
+        `${user.firstName} ${user.lastName} updated the savings circle settings.`,
+    });
+  },
+);
 
     revalidateCirclePaths(
       circleId,
@@ -234,15 +250,31 @@ export async function regenerateInviteCode(
   const inviteCode =
     await createUniqueInviteCode();
 
-  await prisma.savingsCircle.update({
-    where: {
-      id: circle.id,
-    },
+ await prisma.$transaction(
+  async (transaction) => {
+    await transaction.savingsCircle.update({
+      where: {
+        id: circle.id,
+      },
 
-    data: {
-      inviteCode,
-    },
-  });
+      data: {
+        inviteCode,
+      },
+    });
+
+    await createActivityLog({
+      transaction,
+      circleId: circle.id,
+      actorUserId: user.id,
+      type:
+        "INVITE_CODE_CHANGED",
+      title:
+        "Invite code changed",
+      description:
+        `${user.firstName} ${user.lastName} generated a new invite code.`,
+    });
+  },
+);
 
   revalidateCirclePaths(
     circleId,
