@@ -301,8 +301,8 @@ export default async function DashboardPage() {
             />
 
             <DashboardLink
-              href="/dashboard"
-              label="Payouts"
+              href="/reports"
+              label="Reports"
             />
 
            <Link

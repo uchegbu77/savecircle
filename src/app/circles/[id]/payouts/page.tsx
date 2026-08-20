@@ -101,6 +101,13 @@ export default async function PayoutHistoryPage({
           <p className="mt-3 text-slate-600">
             {circle.name}
           </p>
+
+          <a
+            href={`/api/circles/${circle.id}/payouts`}
+            className="mt-4 inline-block rounded-lg bg-emerald-600 px-5 py-3 text-center font-semibold text-white transition hover:bg-emerald-700"
+          >
+            Download payout CSV
+          </a>
         </div>
 
         <section className="mt-8 grid gap-5 sm:grid-cols-2">
