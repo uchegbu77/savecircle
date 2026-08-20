@@ -271,9 +271,13 @@ export default async function DashboardPage() {
               Welcome, {userName}
             </span>
 
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 font-bold text-emerald-700">
+            <Link
+              href="/account"
+              aria-label="Open account settings"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 font-bold text-emerald-700 transition hover:bg-emerald-200"
+            >
               {initials}
-            </div>
+            </Link>
           </div>
         </div>
       </header>
@@ -319,6 +323,11 @@ export default async function DashboardPage() {
                 </span>
               )}
             </Link>
+
+              <DashboardLink
+                href="/account"
+                label="Account"
+              />
 
             <LogoutButton />
           </nav>
