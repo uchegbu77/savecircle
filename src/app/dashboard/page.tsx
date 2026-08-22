@@ -274,7 +274,7 @@ export default async function DashboardPage() {
             <Link
               href="/account"
               aria-label="Open account settings"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 font-bold text-emerald-700 transition hover:bg-emerald-200"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 font-bold text-emerald-700 transition hover:bg-emerald-200 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
             >
               {initials}
             </Link>
@@ -282,11 +282,11 @@ export default async function DashboardPage() {
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-7xl md:grid-cols-[220px_1fr]">
-        <aside className="border-b border-slate-200 bg-white p-6 md:min-h-[calc(100vh-73px)] md:border-r md:border-b-0">
+      <div className="mx-auto grid w-full min-w-0 max-w-7xl md:grid-cols-[220px_minmax(0,1fr)]">
+        <aside className=" min-w-0 border-b border-slate-200 bg-white p-6 md:min-h-[calc(100vh-73px)] md:border-r md:border-b-0">
           <nav
             aria-label="Dashboard navigation"
-            className="flex gap-2 overflow-x-auto md:flex-col"
+            className="flex gap-2 overflow-x-auto md:flex-col md:overflow-visible md:pb-0"
           >
             <DashboardLink
               href="/dashboard"
@@ -311,7 +311,7 @@ export default async function DashboardPage() {
 
            <Link
               href="/notifications"
-              className="flex shrink-0 items-center justify-between gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+              className="flex shrink-0 items-center justify-between gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
             >
               <span>Notifications</span>
 
@@ -352,14 +352,14 @@ export default async function DashboardPage() {
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/circles/join"
-                className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-center font-semibold text-slate-700 transition hover:bg-slate-100"
+                className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-center font-semibold text-slate-700 transition hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
               >
                 Join a circle
               </Link>
 
               <Link
                 href="/circles/create"
-                className="rounded-lg bg-emerald-600 px-5 py-3 text-center font-semibold text-white transition hover:bg-emerald-700"
+                className="rounded-lg bg-emerald-600 px-5 py-3 text-center font-semibold text-white transition hover:bg-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
               >
                 Create new circle
               </Link>
@@ -405,7 +405,7 @@ export default async function DashboardPage() {
 
                 <Link
                   href="/circles"
-                  className="text-sm font-semibold text-emerald-600 hover:text-emerald-700"
+                  className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
                 >
                   View all
                 </Link>
@@ -424,14 +424,14 @@ export default async function DashboardPage() {
                   <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
                     <Link
                       href="/circles/join"
-                      className="rounded-lg border border-slate-300 px-5 py-3 font-semibold text-slate-700 hover:bg-slate-50"
+                      className="rounded-lg border border-slate-300 px-5 py-3 font-semibold text-slate-700 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
                     >
                       Join a circle
                     </Link>
 
                     <Link
                       href="/circles/create"
-                      className="rounded-lg bg-emerald-600 px-5 py-3 font-semibold text-white hover:bg-emerald-700"
+                      className="rounded-lg bg-emerald-600 px-5 py-3 font-semibold text-white hover:bg-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
                     >
                       Create a circle
                     </Link>
@@ -515,7 +515,7 @@ export default async function DashboardPage() {
 
                             <Link
                               href={`/circles/${circle.id}`}
-                              className="text-sm font-semibold text-emerald-600 hover:text-emerald-700"
+                              className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
                             >
                               Open circle →
                             </Link>
@@ -581,7 +581,7 @@ export default async function DashboardPage() {
 
                               <Link
                                 href={`/circles/${circle.id}/cycles/${openCycle.id}`}
-                                className="mt-5 inline-block text-sm font-semibold text-emerald-600 hover:text-emerald-700"
+                                className="mt-5 inline-block text-sm font-semibold text-emerald-600 hover:text-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
                               >
                                 View open cycle →
                               </Link>
@@ -607,7 +607,7 @@ export default async function DashboardPage() {
 
                 <Link
                   href="/contributions"
-                  className="text-sm font-semibold text-emerald-600 hover:text-emerald-700"
+                  className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
                 >
                   View all
                 </Link>

@@ -41,7 +41,7 @@ export default async function AccountPage() {
       <div className="mx-auto max-w-4xl">
         <Link
           href="/dashboard"
-          className="text-sm font-semibold text-emerald-600 hover:text-emerald-700"
+          className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
         >
           ← Dashboard
         </Link>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import StartCircleForm from "../../../components/start-circle-form";
+import ConfirmSubmitButton from "../../../components/confirm-submit-button";
 
 import { auth } from "../../../auth";
 import { prisma } from "../../../lib/prisma";
@@ -86,7 +87,7 @@ const allPositionsAssigned =
       <div className="mx-auto max-w-7xl">
         <Link
           href="/circles"
-          className="text-sm font-semibold text-emerald-600 hover:text-emerald-700"
+          className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
         >
           ← Back to my circles
         </Link>
@@ -282,7 +283,7 @@ const allPositionsAssigned =
                                 >
                                   <button
                                     type="submit"
-                                    className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                                    className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
                                   >
                                     Make admin
                                   </button>
@@ -297,7 +298,7 @@ const allPositionsAssigned =
                                 >
                                   <button
                                     type="submit"
-                                    className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                                    className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
                                   >
                                     Remove admin
                                   </button>
@@ -311,12 +312,12 @@ const allPositionsAssigned =
                                   member.id,
                                 )}
                               >
-                                <button
-                                  type="submit"
-                                  className="rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50"
+                               <ConfirmSubmitButton
+                                  confirmationMessage={`Remove ${member.user.firstName} ${member.user.lastName} from this savings circle?`}
+                                  pendingText="Removing..."
                                 >
                                   Remove member
-                                </button>
+                                </ConfirmSubmitButton>
                               </form>
                             </div>
                           )}

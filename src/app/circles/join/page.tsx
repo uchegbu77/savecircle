@@ -17,14 +17,14 @@ export default async function JoinCirclePage() {
         <div className="flex flex-col gap-3 sm:flex-row">
             <Link
                 href="/circles/join"
-                className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-center font-semibold text-slate-700 transition hover:bg-slate-100"
+                className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-center font-semibold text-slate-700 transition hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
             >
                 Join a circle
             </Link>
 
             <Link
                 href="/circles/create"
-                className="rounded-lg bg-emerald-600 px-5 py-3 text-center font-semibold text-white transition hover:bg-emerald-700"
+                className="rounded-lg bg-emerald-600 px-5 py-3 text-center font-semibold text-white transition hover:bg-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
             >
                 Create new circle
             </Link>

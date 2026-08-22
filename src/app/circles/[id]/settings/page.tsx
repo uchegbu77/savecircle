@@ -7,6 +7,7 @@ import {
 import { auth } from "../../../../auth";
 import CircleSettingsForm from "../../../../components/circle-settings-form";
 import { prisma } from "../../../../lib/prisma";
+import ConfirmSubmitButton from "../../../../components/confirm-submit-button";
 
 import {
   regenerateInviteCode,
@@ -62,7 +63,7 @@ export default async function SettingsPage({
       <div className="mx-auto max-w-3xl">
         <Link
           href={`/circles/${circle.id}`}
-          className="text-sm font-semibold text-emerald-600 hover:text-emerald-700"
+          className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
         >
           ← Back to circle
         </Link>
@@ -136,12 +137,13 @@ export default async function SettingsPage({
                 }
                 className="mt-5"
               >
-                <button
-                  type="submit"
-                  className="rounded-lg border border-slate-300 px-5 py-3 font-semibold text-slate-700 hover:bg-slate-50"
+                <ConfirmSubmitButton
+                  confirmationMessage="Generate a new invite code? The existing code will immediately stop working."
+                  pendingText="Generating..."
+                  variant="warning"
                 >
                   Generate new invite code
-                </button>
+                </ConfirmSubmitButton>
               </form>
             </section>
           </>

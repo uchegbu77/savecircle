@@ -198,7 +198,7 @@ export default async function PayoutHistoryPage({
 
                   <Link
                     href={`/circles/${circle.id}/cycles/${cycle.id}`}
-                    className="mt-5 inline-block text-sm font-semibold text-emerald-600 hover:text-emerald-700"
+                    className="mt-5 inline-block text-sm font-semibold text-emerald-600 hover:text-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
                   >
                     View payout details →
                   </Link>

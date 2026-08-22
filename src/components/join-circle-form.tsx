@@ -47,7 +47,11 @@ export default function JoinCircleForm() {
       </div>
 
       {state.error && (
-        <p className="rounded-lg bg-red-50 p-4 text-sm text-red-700">
+        <p
+          role="alert"
+          aria-live="polite"
+          className="rounded-lg bg-red-50 p-4 text-sm text-red-700"
+        >
           {state.error}
         </p>
       )}

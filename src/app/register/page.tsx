@@ -35,7 +35,7 @@ export default async function RegisterPage() {
             Already registered?{" "}
             <Link
               href="/login"
-              className="font-semibold text-emerald-600 hover:text-emerald-700"
+              className="font-semibold text-emerald-600 hover:text-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
             >
               Log in
             </Link>

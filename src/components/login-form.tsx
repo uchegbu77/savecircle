@@ -59,16 +59,20 @@ export default function LoginForm() {
         />
       </div>
 
-      {state.error && (
-        <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
-          {state.error}
-        </p>
-      )}
+        {state.error && (
+          <p
+            role="alert"
+            aria-live="polite"
+            className="rounded-lg bg-red-50 p-4 text-sm text-red-700"
+          >
+            {state.error}
+          </p>
+)}
 
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-lg bg-emerald-600 px-5 py-3 font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+        className="w-full rounded-lg bg-emerald-600 px-5 py-3 font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
       >
         {pending
           ? "Logging in..."

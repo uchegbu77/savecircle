@@ -56,7 +56,7 @@ const notifications =
       <div className="mx-auto max-w-4xl">
         <Link
           href="/dashboard"
-          className="text-sm font-semibold text-emerald-600 hover:text-emerald-700"
+          className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
         >
           ← Dashboard
         </Link>
@@ -183,7 +183,7 @@ const notifications =
                           <form action={readAction}>
                             <button
                               type="submit"
-                              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+                              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
                             >
                               Mark read
                             </button>
@@ -193,7 +193,7 @@ const notifications =
                         <form action={deleteAction}>
                           <button
                             type="submit"
-                            className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-50"
+                            className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-50 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
                           >
                             Delete
                           </button>
@@ -204,7 +204,7 @@ const notifications =
                     {notification.link && (
                       <Link
                         href={notification.link}
-                        className="mt-5 inline-block text-sm font-semibold text-emerald-600 hover:text-emerald-700"
+                        className="mt-5 inline-block text-sm font-semibold text-emerald-600 hover:text-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
                       >
                         View details →
                       </Link>

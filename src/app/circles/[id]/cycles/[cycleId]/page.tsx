@@ -7,6 +7,7 @@ import {
 import { auth } from "../../../../../auth";
 import ContributionPaymentForm from "../../../../../components/contribution-payment-form";
 import { prisma } from "../../../../../lib/prisma";
+import ConfirmSubmitButton from "../../../../../components/confirm-submit-button";
 
 import {
   resetContributionPayment,
@@ -136,7 +137,7 @@ export default async function CycleDetailsPage({
       <div className="mx-auto max-w-6xl">
         <Link
           href={`/circles/${id}/cycles`}
-          className="text-sm font-semibold text-emerald-600 hover:text-emerald-700"
+          className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
         >
           ← Back to contribution cycles
         </Link>
@@ -373,12 +374,13 @@ export default async function CycleDetailsPage({
                           }
                           className="mt-6"
                         >
-                          <button
-                            type="submit"
-                            className="rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50"
+                         <ConfirmSubmitButton
+                            confirmationMessage="Reset this contribution payment back to pending?"
+                            pendingText="Resetting..."
+                            variant="warning"
                           >
                             Reset payment
-                          </button>
+                          </ConfirmSubmitButton>
                         </form>
                       )}
                   </article>

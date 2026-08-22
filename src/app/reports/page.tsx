@@ -126,7 +126,7 @@ export default async function ReportsPage() {
       <div className="mx-auto max-w-6xl">
         <Link
           href="/dashboard"
-          className="text-sm font-semibold text-emerald-600 hover:text-emerald-700"
+          className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
         >
           ← Dashboard
         </Link>
@@ -323,7 +323,7 @@ export default async function ReportsPage() {
 
                       <Link
                         href={`/circles/${contribution.cycle.savingsCircleId}/cycles/${contribution.cycleId}`}
-                        className="mt-4 inline-block text-sm font-semibold text-emerald-600 hover:text-emerald-700"
+                        className="mt-4 inline-block text-sm font-semibold text-emerald-600 hover:text-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
                       >
                         View contribution →
                       </Link>

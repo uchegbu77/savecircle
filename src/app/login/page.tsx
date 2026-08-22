@@ -49,7 +49,7 @@ if (session?.user) {
             Do not have an account?{" "}
             <Link
               href="/register"
-              className="font-semibold text-emerald-600 hover:text-emerald-700"
+              className="font-semibold text-emerald-600 hover:text-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
             >
               Create one
             </Link>

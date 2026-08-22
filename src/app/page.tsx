@@ -70,7 +70,7 @@ export default function HomePage() {
               <div className="mt-10 flex flex-col gap-4 sm:flex-row">
                 <Link
                   href="/register"
-                  className="rounded-lg bg-emerald-600 px-6 py-3 text-center font-semibold text-white transition hover:bg-emerald-700"
+                  className="rounded-lg bg-emerald-600 px-6 py-3 text-center font-semibold text-white transition hover:bg-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
                 >
                   Create your account
                 </Link>
@@ -219,7 +219,7 @@ export default function HomePage() {
 
             <Link
               href="/register"
-              className="mt-8 inline-block rounded-lg bg-white px-6 py-3 font-semibold text-emerald-700 transition hover:bg-emerald-50"
+              className="mt-8 inline-block rounded-lg bg-white px-6 py-3 font-semibold text-emerald-700 transition hover:bg-emerald-50 focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
             >
               Get started
             </Link>

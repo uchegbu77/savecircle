@@ -170,14 +170,22 @@ export default function CircleSettingsForm({
         />
       </div>
 
-      {state.error && (
-        <p className="rounded-lg bg-red-50 p-4 text-sm text-red-700">
-          {state.error}
-        </p>
-      )}
+     {state.error && (
+          <p
+            role="alert"
+            aria-live="polite"
+            className="rounded-lg bg-red-50 p-4 text-sm text-red-700"
+          >
+            {state.error}
+          </p>
+        )}
 
-      {state.success && (
-        <p className="rounded-lg bg-emerald-50 p-4 text-sm text-emerald-700">
+     {state.success && (
+        <p
+          role="status"
+          aria-live="polite"
+          className="rounded-lg bg-emerald-50 p-4 text-sm text-emerald-700"
+        >
           {state.success}
         </p>
       )}
